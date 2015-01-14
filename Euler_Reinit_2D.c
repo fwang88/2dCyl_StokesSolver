@@ -3,18 +3,8 @@
 #include <time.h>
 #include <math.h>
 
-//#define ID(i,j) ( (j) + (i) * nr )
-//#define IDL(i,j) if(i>=3 && i<=rowlocal+2 && j>=3 && j<=nr+2) IDL
 #define IDL(i,j) (((i)<0 ? (-(i)) : ((i)>=nz) ? (2*nz-1-(i)) : (i))*nr + ((j)<0 ? (-(j)) : ((j)>=nr) ? (2*nr-1-(j)) : (j)) - llz*nr)
-/*
-int IDL(PetscInt i, PetscInt j, PetscInt rowlocal, PetscInt nlocal, PetscInt nr, PetscInt nz) {
-	if(i>=3 && i<=rowlocal+2 && j>=3 && j<=nr+2) return j-3+i*nr;
-	if(i<3 && j>=3 && j<=nr+2) return nlocal+j-3+(2-i)*nr;
-	if(i>rowlocal+2 && j>=3 && j<=nr+2) return nlocal+3*nr+j-3+(i-rowlocal-3)*nr;
-	if(j<3) return nlocal+6*nr+2-j+(i-3)*3;
-	if(j>nr+2) return nlocal+6*nr+3*nz+(j-nr-3)+(i-3)*3;
-}
-*/
+
 #if !defined(MAX)
 #define	MAX(A, B)	((A) > (B) ? (A) : (B))
 #endif
@@ -44,15 +34,12 @@ void Euler_Reinit_2D(Vec G1, Vec G, PetscScalar dtau, PetscScalar epsilon, Petsc
 	PetscScalar **lgarray, **g1array;
 	MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 	
-	//VecView(G,PETSC_VIEWER_STDOUT_SELF);
-	
         DMCreateLocalVector(da,&lG);
 	VecSet(lG,0);
 	DMGlobalToLocalBegin(da,G,INSERT_VALUES,lG);
         DMGlobalToLocalEnd(da,G,INSERT_VALUES,lG);
 	DMDAVecGetArray(da,lG,&lgarray);
 	DMDAVecGetArray(da,G1,&g1array);
-	//VecView(lG,PETSC_VIEWER_STDOUT_WORLD);
 	
 	DMDAGetCorners(da,&llr,&llz,0,&lsizer,&lsizez,0);
 	
@@ -60,9 +47,6 @@ void Euler_Reinit_2D(Vec G1, Vec G, PetscScalar dtau, PetscScalar epsilon, Petsc
 	double der_z_minus, der_z_plus, der_r_minus, der_r_plus;
 	double G_z_squared, G_r_squared; 
         double smoothing_factor;
-	//printf("rank=%d\n",rank);
-	
-	//VecView(G,PETSC_VIEWER_STDOUT_WORLD);
 	
         for (i=llz; i<llz+lsizez; i++) 
           for (j=llr; j<llr+lsizer; j++) {   

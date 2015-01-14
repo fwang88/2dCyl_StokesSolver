@@ -6,7 +6,7 @@
 #include "myheader.h"
 #include <stdio.h>
 #include <petscviewerhdf5.h>
-
+#include <string.h>
 #include <getopt.h>
 #include <sys/stat.h>
 
@@ -22,11 +22,17 @@ int main(int argc, char **args) {
   PetscViewer    viewer;
   KSP ksp;
   PC pc;
-  
+  int initflag;
+  char* mode;
+
   PetscInitialize(&argc, &args, PETSC_NULL, PETSC_NULL);
   MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
   MPI_Comm_size(PETSC_COMM_WORLD,&size);
-  
+
+  mode = malloc(11 * sizeof(char));
+  strncpy(mode,"end",10);
+  mode[10] = '\0';
+
   r0 = 0.97;
   tension = 1.5; 
   muRat = 0.91;
@@ -40,7 +46,8 @@ int main(int argc, char **args) {
   PetscScalar dt=0.001;
   PetscScalar outputstep=dt;
   epsilon = 0.3;
-
+  initflag = 1;
+  
   struct option opts[] = {
     { "r0", 1, NULL, 1 },
     { "muRat", 1, NULL, 2 },
@@ -53,6 +60,7 @@ int main(int argc, char **args) {
     { "dt", 1, NULL, 9 },
     { "outputstep", 1, NULL, 10},
     { "epsilon", 1, NULL, 11},
+    { "initflag", 1, NULL, 12 },
     { "hdf5", 0, NULL, 'h' },
     { NULL, 0, NULL, 0 }
   };
@@ -92,6 +100,9 @@ int main(int argc, char **args) {
     case 11:
       epsilon = atof(optarg);
       break;
+    case 12:
+      initflag = atof(optarg);
+      break;
     case 'h':
       hdf5 = 1;
       break;
@@ -99,7 +110,18 @@ int main(int argc, char **args) {
       SETERRQ(PETSC_COMM_WORLD, PETSC_ERR_SUP, "unrecognized option");
     }
   }
+
+  switch (initflag) {
+  case 0:
+    mode = "end";
+    break;
+  case 1:
+    mode = "periodic";
+    break;
+  }
   
+  printf("%s\n",mode);
+
   interfacei = r0/dr;
   nr = round(maxR/dr);
   nz = round(maxZ/dz);
@@ -115,7 +137,7 @@ int main(int argc, char **args) {
   PetscScalar **array;
   DMDAVecGetArray(da,G,&array);
   MPI_Barrier(MPI_COMM_WORLD);
-  InitialLevelSet(dr, dz, nr, nz, interfacei, r0, pertb, array, llr,llz,lsizer,lsizez); 
+  InitialLevelSet(dr, dz, nr, nz, interfacei, r0, pertb, array, llr,llz,lsizer,lsizez,mode); 
   DMDAVecRestoreArray(da,G,&array);
   
   PetscScalar t1, t2, z_turnh, z_turnl, z_width, Tatz, mu1[nz], mu2[nz];

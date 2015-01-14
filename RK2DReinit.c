@@ -1,4 +1,4 @@
-/* RK2DReinit solving the level set equation with a dt time interval */
+/* RK2DReinit solving the reinitialization equation with a dt time interval */
 
 #include <petscksp.h>
 #include <petscdmda.h>
@@ -25,7 +25,6 @@ void RK2DReinit(Vec G, PetscInt ReinitStep, PetscScalar dz, PetscScalar dr, Pets
   VecDuplicate(G, &G2);
   
   for(i=0; i<ReinitStep; i++) {
-    //printf("rank=%d \n",rank);
     Euler_Reinit_2D(G1, G, dtau, epsilon, dz, dr, nz, nr, da);
     Euler_Reinit_2D(G2, G1, dtau, epsilon, dz, dr, nz, nr, da);
     VecCopy(G,G1);
@@ -35,7 +34,6 @@ void RK2DReinit(Vec G, PetscInt ReinitStep, PetscScalar dz, PetscScalar dr, Pets
     VecScale(G,1.0/3.0);
     VecAXPY(G,2.0/3.0,G2);
   }
-  //VecView(G,PETSC_VIEWER_STDOUT_WORLD);
   VecDestroy(&G1);
   VecDestroy(&G2);
 }

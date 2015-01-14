@@ -16,7 +16,6 @@
 
 double upwind_WENO(double v1,double v2,double v3,double v4,double v5);
 
-
 /****************************************************************************************/
 void Euler_mex2D(DM da, DM da3, Vec G1, Vec G, Vec uwp,  PetscScalar dz, PetscScalar dr, PetscInt nz, PetscInt nr, PetscScalar dt) {
 	PetscInt i,j;
@@ -51,7 +50,7 @@ void Euler_mex2D(DM da, DM da3, Vec G1, Vec G, Vec uwp,  PetscScalar dz, PetscSc
           for (j=llr;j<llr+lsizer;j++) {       
             if (i==0) {
               /*w_center = vel[llz][IDL(i,j)].w; */
-              w_center = 0;
+              w_center = 0; /* this need to be changed for different boundary condition!*/
             } 
             else {
               w_center = 0.5*(vel[llz][IDL(i,j)].w + vel[llz][IDL(i-1,j)].w); 

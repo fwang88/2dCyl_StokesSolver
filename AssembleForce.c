@@ -80,10 +80,10 @@ void AssembleForce(Vec Force, Vec G, DM da, DM da3, PetscInt nr, PetscInt nz, Pe
   DMGlobalToLocalEnd(da,G,INSERT_VALUES,l_G);
   DMGlobalToLocalBegin(da3,Force,INSERT_VALUES,l_Force);
   DMGlobalToLocalEnd(da3,Force,INSERT_VALUES,l_Force);
-  VecCopy(l_Force,l_Force2);
+  //  VecCopy(l_Force,l_Force2);
   DMDAVecGetArray(da,l_G,&garray);
   DMDAVecGetArray(da3,l_Force,&farray);
-  DMDAVecGetArray(da3,l_Force2,&farray2);
+  //  DMDAVecGetArray(da3,l_Force2,&farray2);
   DMDAGetCorners(da3,&llr,&llz,0,&lsizer,&lsizez,0);
 
   for(j=llz;j<llz+lsizez;j++) {
@@ -100,9 +100,6 @@ void AssembleForce(Vec Force, Vec G, DM da, DM da3, PetscInt nr, PetscInt nz, Pe
       }
       farray[j][i].u = tension * coeff_gij * gijr;
       farray[j][i].w = tension * coeff_gij * gijz;
-      //farray[j][i].u = 1.1;
-      //farray[j][i].w = 2.2;
-      //farray[j][i].p = 3.3;
     }
   }
     
@@ -126,10 +123,10 @@ void AssembleForce(Vec Force, Vec G, DM da, DM da3, PetscInt nr, PetscInt nz, Pe
   VecAssemblyBegin(Force);
   VecAssemblyEnd(Force);
   DMDAVecRestoreArray(da3,l_Force,&farray);
-  DMDAVecRestoreArray(da3,l_Force2,&farray2);
+  //  DMDAVecRestoreArray(da3,l_Force2,&farray2);
   DMDAVecRestoreArray(da,l_G,&garray);
   DMRestoreLocalVector(da,&l_G);
   DMRestoreLocalVector(da3,&l_Force);
-  DMRestoreLocalVector(da3,&l_Force2);
+  //  DMRestoreLocalVector(da3,&l_Force2);
 
 }

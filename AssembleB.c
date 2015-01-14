@@ -143,10 +143,6 @@ void eqnval(DM da, PetscScalar *valu, PetscScalar *valw, PetscScalar *valp, Pets
     valw[10] = -dzinv;
   }
   
-  /*{
-    if(i==(nr-1) && j==(nz-1)) {
-    valp[12] = 1;
-    }*/
   {
     double cu = (i ? ruI(i)/rPI(i) : 2) * drinv;
     double cm = (i ? ruI(i-1)/rPI(i) : 2) * drinv;

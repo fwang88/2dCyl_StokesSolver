@@ -1,4 +1,4 @@
-PETSC_EXTERN void InitialLevelSet(PetscScalar, PetscScalar, PetscInt, PetscInt, PetscScalar, PetscScalar, PetscScalar, PetscScalar **, PetscInt, PetscInt, PetscInt, PetscInt);
+PETSC_EXTERN void InitialLevelSet(PetscScalar, PetscScalar, PetscInt, PetscInt, PetscScalar, PetscScalar, PetscScalar, PetscScalar **, PetscInt, PetscInt, PetscInt, PetscInt, char *);
 
 PETSC_EXTERN void RK2DReinit(Vec, PetscInt, PetscScalar, PetscScalar, PetscInt, PetscInt, DM);
 
