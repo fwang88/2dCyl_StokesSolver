@@ -5,7 +5,7 @@
 #include <string.h>
 void InitialLevelSet(PetscScalar dr, PetscScalar dz, PetscInt nr, PetscInt nz, PetscScalar interfacei, PetscScalar r0, PetscScalar pertb, PetscScalar **array, PetscInt llr, PetscInt llz, PetscInt lsizer, PetscInt lsizez, char *mode)
 {
-  PetscScalar r, number, gij, interfaceR, z;
+  PetscScalar number, gij, interfaceR, z;
   PetscInt i, j, j0, rank;
   PetscScalar lambdaz;
   MPI_Comm_rank(PETSC_COMM_WORLD,&rank);

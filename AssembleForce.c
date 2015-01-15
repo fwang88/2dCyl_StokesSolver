@@ -65,15 +65,15 @@ double curvature2D(double **garray, int i, int j, int nz, int nr, double dz, dou
 
 void AssembleForce(Vec Force, Vec G, DM da, DM da3, PetscInt nr, PetscInt nz, PetscScalar dr, PetscScalar dz, PetscScalar tension, PetscScalar epsilon) {
 
-  Vec l_G, l_Force, l_Force2;
+  Vec l_G, l_Force;
   PetscScalar **garray;
-  StokesDOF **farray, **farray2;
+  StokesDOF **farray;
   PetscInt llr,llz,lsizer,lsizez, i, j;
   double gijz, gijr, length_gij, deltaij, curveij, coeff_gij;
   VecSet(Force,0);
   DMGetLocalVector(da,&l_G);
   DMGetLocalVector(da3,&l_Force);
-  DMGetLocalVector(da3,&l_Force2);
+  //  DMGetLocalVector(da3,&l_Force2);
   VecSet(l_G,0); 
   VecSet(l_Force,0);
   DMGlobalToLocalBegin(da,G,INSERT_VALUES,l_G);

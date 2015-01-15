@@ -160,11 +160,10 @@ void eqnval(DM da, PetscScalar *valu, PetscScalar *valw, PetscScalar *valp, Pets
 void AssembleB(Mat B, DM da, DM da3, PetscScalar epsilon, PetscInt nr, PetscInt nz, PetscScalar dr, PetscScalar dz, Vec G, PetscScalar *mu1, PetscScalar *mu2) 
 {
   PetscInt rank, bgnr, bgnz, szr, szz;
-  PetscInt i,j,k;
+  PetscInt i,j;
   PetscScalar valu[11]={0}, valw[11]={0}, valp[4]={0};
   MatStencil ueqn, weqn, peqn, eqnu[11], eqnw[11], eqnp[4];
   Vec lG;
-  PetscScalar **array;
   
   DMGetLocalVector(da,&lG);
   VecSet(lG,0);
