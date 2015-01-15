@@ -5,7 +5,9 @@ for i in $LISTI
 do
 for j in $LISTJ 
 do
-${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -np 2 ./stokes --dr=$i --pertb=$j --dt=0.001 --outputstep=0.001 --maxZ=20 --dz=$i --maxR=10 --r0=0.97 --tension=1.0 --initflag=1
+${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -np 2 ./stokes --dr=$i --pertb=$j --dt=0.001 --outputstep=0.001 --maxZ=20 --dz=$i --maxR=10 --r0=0.97 --tension=1.0 --initflag=0
 echo $i
 done
 done
+
+#initflag = 0: end; initflag = 1: periodic

@@ -9,3 +9,6 @@ OBJECTS = main03.o  InitialLevelSet.o RK2DReinit.o Euler_Reinit_2D.o AssembleB.o
 
 stokes: $(OBJECTS)
 	$(CLINKER) $(OBJECTS) -Ofast -o $@ ${PETSC_LIB}
+	$(RM) -f $(OBJECTS)
+#clean1:
+#	-rm -f OBJECTS
