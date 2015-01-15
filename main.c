@@ -37,17 +37,17 @@ int main(int argc, char **args) {
   
   r0 = 0.97;
   muRat = 0.91;
-  tension = 1.5; 
+  tension = 1.0; 
   maxR = 10;
-  maxZ = 100;
+  maxZ = 20;
   dr = 0.1;
   dz = 0.1;
   pertb = 0.02;
   PetscScalar Tlow = 1400;
   PetscScalar Thigh = 1800;
   PetscScalar Twidth = 295;
-  PetscScalar outputstep = 1;
-  vf = 2.0;
+  PetscScalar outputstep = 0.001;
+  vf = .0;
   PetscScalar LowTWidth = 350;
   PetscScalar trestart = 0.0;
   PetscInt restart=0;
@@ -228,13 +228,19 @@ int main(int argc, char **args) {
     PetscScalar **array;
     DMDAVecGetArray(da,G,&array);
     InitialLevelSet(dr, dz, nr, nz, interfacei, r0, pertb, array, llr,llz,lsizer,lsizez,mode);
+    sprintf(buffer,"./master_branch_tanh_restart/mass_g_maxZ_%.2f_maxR_%.2f_dz_%.2f_twidth_%.2f_vf_%.2f_Tlow_%.1f_Thigh_%.1f_lowtwidth_%.1f/outputG_t_init.h5",
+            maxZ,maxR,dz,Twidth,vf,Tlow,Thigh,LowTWidth);
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD,buffer,FILE_MODE_WRITE,&viewer);
+    VecView(G,viewer);
+    PetscViewerDestroy(&viewer);
+
     DMDAVecRestoreArray(da,G,&array);
     PetscInt ReinitStep = 2;
     //    MPI_Barrier(MPI_COMM_WORLD);
     RK2DReinit(G, ReinitStep, dz, dr, nz, nr, da);
     sprintf(buffer,"./master_branch_tanh_restart/mass_g_maxZ_%.2f_maxR_%.2f_dz_%.2f_twidth_%.2f_vf_%.2f_Tlow_%.1f_Thigh_%.1f_lowtwidth_%.1f/outputG_t_%.6f.h5",maxZ,maxR,dz,Twidth,vf,Tlow,Thigh,LowTWidth,0.0);
 
-    PetscViewerHDF5Open(PETSC_COMM_WORLD,buffer,FILE_MODE_WRITE,&viewer);
+    PetscViewerBinaryOpen(PETSC_COMM_WORLD,buffer,FILE_MODE_WRITE,&viewer);
     VecView(G,viewer);
     PetscViewerDestroy(&viewer);
   }
@@ -277,13 +283,14 @@ int main(int argc, char **args) {
     }
     DMDAVecRestoreArray(da3,uwp,&p_uwp);
    
-    dt = timestep(da3,uwp,dr,dz,vf);    
+    //    dt = timestep(da3,uwp,dr,dz,vf);    
+    dt = 0.001;
     /** iterate one step; reinitialize 5 steps of the level set every 6 time steps; update time sequence **/
     RK2DPeriod(da,da3,G,uwp,dz,dr,nz,nr,dt);
 
-    if( itsteps % 6 == 0 ) {
+    if( itsteps % 1 == 0 ) {
       MPI_Barrier(MPI_COMM_WORLD);
-      RK2DReinit(G,5,dz,dr,nz,nr,da);
+      RK2DReinit(G,2,dz,dr,nz,nr,da);
     }
     t2 = t1+dt;
     /** output level set field and velocity field data in binary format **/

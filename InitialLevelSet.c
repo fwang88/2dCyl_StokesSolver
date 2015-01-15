@@ -11,8 +11,7 @@ void InitialLevelSet(PetscScalar dr, PetscScalar dz, PetscInt nr, PetscInt nz, P
   MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
 
   if(strcmp(mode,"periodic")==0) {
-    lambdaz = nz*dz - dz/2;
-    
+    lambdaz = nz*dz - dz/2;    
     srandom ( rank );
     for (j=llz;j<llz+lsizez;j++) {
       z = j * dz;
