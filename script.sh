@@ -22,7 +22,7 @@ do
 for vel in $LISTVEL
 do
 outputstep=`echo "scale=4; $dr/$vel*20.0" | bc`
-${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -np 4 ./stokes --maxR=$maxr --maxZ=$maxz --dr=$dr --dz=$dz --r0=0.97 --tension=1.0 --Twidth=$tw --Tlow=$Tlow --Thigh=$Thigh --vf=$vel --outputstep=$outputstep --pertb=$pertb --LowTWidth=$lowtwidth --trestart=$trestart --restart=$restart --initflag=0 --temp_profile=$temp_profile
+${PETSC_DIR}/${PETSC_ARCH}/bin/mpirun -np 4 ./stokes --r0=0.97 --muRat=0.91 --tension=1.0 --maxR=$maxr --maxZ=$maxz --dr=$dr --dz=$dz --pertb=$pertb --Tlow=$Tlow --Thigh=$Thigh --Twidth=$tw --outputstep=$outputstep --vf=$vel --LowTWidth=$lowtwidth --trestart=$trestart --restart=$restart --initflag=$initflag --temp_profile=$temp_profile
 done
 done
 done
