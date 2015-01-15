@@ -283,8 +283,9 @@ int main(int argc, char **args) {
     }
     DMDAVecRestoreArray(da3,uwp,&p_uwp);
    
-    //    dt = timestep(da3,uwp,dr,dz,vf);    
-    dt = 0.001;
+    if(initflag) dt = 0.001;
+    else dt = timestep(da3,uwp,dr,dz,vf);
+
     /** iterate one step; reinitialize 5 steps of the level set every 6 time steps; update time sequence **/
     RK2DPeriod(da,da3,G,uwp,dz,dr,nz,nr,dt);
 
@@ -313,6 +314,7 @@ int main(int argc, char **args) {
       }
     }
     end = MPI_Wtime();
+
     if(rank==0 && itsteps<=10)
       printf("t1 = %.4f, t2 = %.4f, solve time = %.4f \n", t1, t2, end-begin);
     
