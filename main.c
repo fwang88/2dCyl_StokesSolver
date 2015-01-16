@@ -144,14 +144,14 @@ int main(int argc, char **args) {
 
   switch (initflag) {
   case 0:
-    mode = "end";
+    strcpy(mode, "end");
     break;
   case 1:
-    mode = "periodic";
+    strcpy(mode, "periodic");
     break;
   }  
 
-  printf("%s\n",mode);
+  //  printf("%s\n",mode);
 
   interfacei = r0/dr;
   nr = round(maxR/dr);
@@ -175,18 +175,20 @@ int main(int argc, char **args) {
   char buffer[200];
   count = 1;
   z_width = Twidth/dz;
-  
+
   for(i=0;i<nz;i++) {
     if(temp_profile == 1) {
       Tatz = (Thigh-Tlow)*(tanh((nz+1.0*LowTWidth/dz-i)/z_width)) + Tlow;
-      mu2[i] = pow(10, 26909.0/(Tatz+273)-7.2348);
-      mu1[i] = pow(10, 819.0/(Tatz+273)-3.727);
+      mu2[i] = pow(10, 26909.0/(Tatz+273)-7.2348)/1.0e3;
+      mu1[i] = pow(10, 819.0/(Tatz+273)-3.727)/1.0e3;
     }
     else {
-        mu2[i] = 1.0;
-        mu1[i] = mu2[i] * muRat;
-      }
+      mu2[i] = muRat;
+      mu1[i] = 1.0;
+    }
   }
+  if(temp_profile == 1) tension = tension * 1000;
+
   /** create matrix B, Force, uwp and DMDA structure **/
   Mat B; 
   Vec Force, uwp;
@@ -283,15 +285,20 @@ int main(int argc, char **args) {
     }
     DMDAVecRestoreArray(da3,uwp,&p_uwp);
    
-    if(initflag) dt = 0.001;
-    else dt = timestep(da3,uwp,dr,dz,vf);
+    if(initflag) {
+      dt = 0.001; 
+      //      printf("haha\n");
+    }
+    else {
+      dt = timestep(da3,uwp,dr,dz,vf);
+    }
 
     /** iterate one step; reinitialize 5 steps of the level set every 6 time steps; update time sequence **/
     RK2DPeriod(da,da3,G,uwp,dz,dr,nz,nr,dt);
 
-    if( itsteps % 1 == 0 ) {
+    if( itsteps % 5 == 0 ) {
       MPI_Barrier(MPI_COMM_WORLD);
-      RK2DReinit(G,2,dz,dr,nz,nr,da);
+      RK2DReinit(G,5,dz,dr,nz,nr,da);
     }
     t2 = t1+dt;
     /** output level set field and velocity field data in binary format **/
@@ -299,17 +306,17 @@ int main(int argc, char **args) {
       if( t1<count*outputstep+trestart && t2>=count*outputstep+trestart) {
         sprintf(buffer,"./master_branch_tanh_restart/mass_g_maxZ_%.2f_maxR_%.2f_dz_%.2f_twidth_%.2f_vf_%.2f_Tlow_%.1f_Thigh_%.1f_lowtwidth_%.1f/outputG_t_%.6f.h5",maxZ,maxR,dz,Twidth,vf,Tlow,Thigh,LowTWidth,count*outputstep+trestart);
 
-        if( rank == 0) printf("output successfully at t2 = %.4f", t2);
+	//        if( rank == 0) printf("output successfully at t2 = %.4f", t2);
         MPI_Barrier(MPI_COMM_WORLD);
         PetscViewerBinaryOpen(PETSC_COMM_WORLD,buffer,FILE_MODE_WRITE,&viewer);
         VecView(G,viewer);
         PetscViewerDestroy(&viewer);
-        /*
-          sprintf(buffer,"./maxZ_%.2f/twidth_%.2f_vf_%.2f/uwp_t_%.6f.h5",maxZ,Twidth,vf,count*outputstep);
-          PetscViewerHDF5Open(PETSC_COMM_WORLD,buffer,FILE_MODE_WRITE,&viewer);
-          VecView(uwp,viewer);
-          PetscViewerDestroy(&viewer);
-        */
+	
+        sprintf(buffer,"./master_branch_tanh_restart/mass_g_maxZ_%.2f_maxR_%.2f_dz_%.2f_twidth_%.2f_vf_%.2f_Tlow_%.1f_Thigh_%.1f_lowtwidth_%.1f/uwp_t_%.6f.h5",maxZ,maxR,dz,Twidth,vf,Tlow,Thigh,LowTWidth,count*outputstep+trestart);
+	PetscViewerBinaryOpen(PETSC_COMM_WORLD,buffer,FILE_MODE_WRITE,&viewer);
+	VecView(uwp,viewer);
+	PetscViewerDestroy(&viewer);
+	
         count++;
       }
     }
