@@ -12,8 +12,15 @@
 #include <sys/stat.h>
 
 int main(int argc, char **args) {
+
+
+  PetscInitialize(&argc, &args, PETSC_NULL, PETSC_NULL);
+  MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
+  MPI_Comm_size(PETSC_COMM_WORLD,&size);
+
+
   double begin, end;
-  Vec G;
+  stokes_vec *G;
   PetscInt nr, nz, i,j;
   PetscScalar muRat, vf, r0, tension, maxR, maxZ, dr, dz, interfacei, pertb, epsilon;
   PetscMPIInt size, rank, llr, llz, lsizer, lsizez, nghostlayer=3;
@@ -30,10 +37,6 @@ int main(int argc, char **args) {
   mode = malloc(11 * sizeof(char));
   strncpy(mode,"end",10);
   mode[10] = '\0';
-
-  PetscInitialize(&argc, &args, PETSC_NULL, PETSC_NULL);
-  MPI_Comm_rank(PETSC_COMM_WORLD,&rank);
-  MPI_Comm_size(PETSC_COMM_WORLD,&size);
   
   r0 = 0.97;
   muRat = 0.91;
@@ -191,9 +194,14 @@ int main(int argc, char **args) {
 
   /** create matrix B, Force, uwp and DMDA structure **/
   Mat B; 
-  Vec Force, uwp;
-  StokesDOF **p_uwp;
+  Vec Force, uwp, U, W, feed;
+  StokesDOF **p_uwp, **p_feed;
   PetscInt dof=3;
+  PetscScalar **uarray, **warray;
+
+  VecDuplicate(G,&U);
+  VecDuplicate(G,&W);
+
   nghostlayer = 1;
   DMDACreate2d(PETSC_COMM_WORLD, DMDA_BOUNDARY_NONE, DMDA_BOUNDARY_NONE, DMDA_STENCIL_BOX, nr, nz, 1, PETSC_DECIDE, dof, nghostlayer,NULL,NULL,&da3);
   DMCreateGlobalVector(da3,&Force);
@@ -203,6 +211,16 @@ int main(int argc, char **args) {
   DMSetMatrixPreallocateOnly(da3, PETSC_TRUE);
   DMSetUp(da3);
   DMCreateMatrix(da3,MATAIJ,&B);
+
+  VecDuplicate(Force,&feed);
+  DMDAVecGetArray(da3,feed,&p_feed);
+  for(j=llz;j<llz+lsizez;j++) {
+    for(i=llr;i<llr+lsizer;i++) {
+      p_feed[j][i].w = -vf;
+    }
+  }
+  DMDAVecRestoreArray(da3,feed,&p_feed);
+  
   /** set up some parameters for ksp solver **/
   itsteps = 0;
   its = 51;
@@ -254,6 +272,9 @@ int main(int argc, char **args) {
     MPI_Barrier(MPI_COMM_WORLD);
     begin = MPI_Wtime();
     itsteps++;
+
+    Solve_uwp_from_G(G,mu1,mu2);
+
     AssembleB(B,da,da3,epsilon,nr,nz,dr,dz,G,mu1,mu2);
     AssembleForce(Force,G,da,da3,nr,nz,dr,dz,tension,epsilon);
     /** sparse direct solver and preconditioning iterative solver to solve stokes equation **/
@@ -276,15 +297,23 @@ int main(int argc, char **args) {
       KSPSolve(ksp,Force,uwp);
       KSPGetIterationNumber(ksp,&its);
     }
+    VecDuplicate(uwp,uwp_j);
     /** include the feed speed; get the time step by CFL condition **/
     DMDAVecGetArray(da3,uwp,&p_uwp);
+    DMDAVecGetArray(da,U,&uarray);
+    DMDAVecGetArray(da,W,&warray);
+
     for(j=llz;j<llz+lsizez;j++) {
       for(i=llr;i<llr+lsizer;i++) {
         p_uwp[j][i].w -= vf;
+	uarray[j][i] = p_uwp[j][i].u;
+	warray[j][i] = p_uwp[j][i].w;
       }
     }
     DMDAVecRestoreArray(da3,uwp,&p_uwp);
-   
+    DMDAVecRestoreArray(da,U,&uarray);
+    DMDAVecRestoreArray(da,W,&warray);
+    
     if(initflag) {
       dt = 0.001; 
       //      printf("haha\n");
@@ -292,6 +321,10 @@ int main(int argc, char **args) {
     else {
       dt = timestep(da3,uwp,dr,dz,vf);
     }
+    
+    /* project uwp to later time +dt */
+    // vel_project(U, vf, dz, dt, da);
+    // vel_project(W, vf, dz, dt, da);    
 
     /** iterate one step; reinitialize 5 steps of the level set every 6 time steps; update time sequence **/
     RK2DPeriod(da,da3,G,uwp,dz,dr,nz,nr,dt);
@@ -301,12 +334,50 @@ int main(int argc, char **args) {
       RK2DReinit(G,5,dz,dr,nz,nr,da);
     }
     t2 = t1+dt;
+
+    VecDuplicate(G,&G_j);
+    for(j=0;j<10;j++) {
+      AssembleB(B,da,da3,epsilon,nr,nz,dr,dz,G,mu1,mu2);
+      AssembleForce(Force,G,da,da3,nr,nz,dr,dz,tension,epsilon);
+      if(its>=11) {
+	KSPSetOperators(ksp,B,B,DIFFERENT_NONZERO_PATTERN);
+	KSPSetDM(ksp,da3);
+	KSPSetDMActive(ksp,PETSC_FALSE);
+	KSPSetFromOptions(ksp);
+	KSPGetPC(ksp,&pc);
+	PCSetType(pc,PCLU);
+	PCFactorSetMatSolverPackage(pc,MATSOLVERMUMPS);
+	//PCFactorSetMatSolverPackage(pc,MATSOLVERPASTIX);
+	KSPSetUp(ksp);
+	KSPSolve(ksp,Force,uwp_j);
+	its = 0;
+      }
+      else {
+	KSPSetOperators(ksp,B,B,SAME_PRECONDITIONER);
+	KSPSetUp(ksp);
+	KSPSolve(ksp,Force,uwp_j);
+	KSPGetIterationNumber(ksp,&its);
+      }
+      RK2DPeriod(da,da3,G_j,uwp_j,dz,dr,nz,nr,dt);
+    }
+    
+    
+    
+    /*
+    fetch_vel_u(U,uwp);
+    fetch_vel_w(W,uwp);
+    project_vel(da,da3,U,feed,dz,dr,nz,nr,dt);
+    project_vel(da,da3,W,feed,dz,dr,nz,nr,dt);
+    update_uwp(uwp,U,W);
+    RK2DPeriod(da,da3,G,uwp,dz,dr,nz,nr,dt);
+    */
+
     /** output level set field and velocity field data in binary format **/
     if (1) {
       if( t1<count*outputstep+trestart && t2>=count*outputstep+trestart) {
         sprintf(buffer,"./master_branch_tanh_restart/mass_g_maxZ_%.2f_maxR_%.2f_dz_%.2f_twidth_%.2f_vf_%.2f_Tlow_%.1f_Thigh_%.1f_lowtwidth_%.1f/outputG_t_%.6f.h5",maxZ,maxR,dz,Twidth,vf,Tlow,Thigh,LowTWidth,count*outputstep+trestart);
 
-	//        if( rank == 0) printf("output successfully at t2 = %.4f", t2);
+	//if( rank == 0) printf("output successfully at t2 = %.4f", t2);
         MPI_Barrier(MPI_COMM_WORLD);
         PetscViewerBinaryOpen(PETSC_COMM_WORLD,buffer,FILE_MODE_WRITE,&viewer);
         VecView(G,viewer);
@@ -322,7 +393,7 @@ int main(int argc, char **args) {
     }
     end = MPI_Wtime();
 
-    if(rank==0 && itsteps<=10)
+    if(rank==0)
       printf("t1 = %.4f, t2 = %.4f, solve time = %.4f \n", t1, t2, end-begin);
     
     t1=t2;

@@ -6,13 +6,23 @@ typedef struct {
 
 typedef struct {
   Vec data;
+  PetscScalar maxR, maxZ, dr, dz;
   PetscInt nr, nz;
   DM da;
-} stokes_vec;
+} levelset_vec;
 
 
-stokes_vec create_stokesvec(PetscInt, PetscInt, DM);
+levelset_vec create_levelset(PetscScalar maxR, PetscScalar maxZ,
+			    PetscScalar dr,   PetscScalar dz,
+			    PetscInt nghostlayer);
 
+void destroy_levelset(levelset_vec);
+
+void initial_levelset(levelset_vec *G, PetscScalar r0, PetscScalar pertb, char *mode);
+
+void get_input(int argc, char **args,
+	       PetscScalar *maxR, PetscScalar *maxZ,
+	       PetscScalar *dr,   PetscScalar *dz);
 
 PETSC_EXTERN void InitialLevelSet(PetscScalar, PetscScalar, PetscInt, PetscInt, PetscScalar, PetscScalar, PetscScalar, PetscScalar **, PetscInt, PetscInt, PetscInt, PetscInt, char *);
 
