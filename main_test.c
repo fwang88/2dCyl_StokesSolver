@@ -28,36 +28,42 @@ int main(int argc, char **args) {
   PetscScalar restart, trestart;
   PetscScalar outputdt;
   char mode[10];
-  PetscScalar *mu1=NULL, *mu2=NULL;
-
+  
+  viscosity *mu;
+  parameter *para;
+  mu = malloc(sizeof(viscosity));
+  para = malloc(sizeof(parameter));
+  
   get_input(argc, args, 
-	    &maxr, &maxz, &dr, &dz, &r0,
-	    &tension,
-	    &pertb,
-	    &period_or_end, &mui, &muo, &vf,
-	    &temp_profile, &tlow, &thigh, &twidth,
-	    &lowtwidth,
-	    &restart, &trestart,
-	    &outputdt,
-	    mode,
-	    mu1, mu2
-	    );
+		 &maxr, &maxz, &dr, &dz, &r0,
+		 &tension,
+		 &pertb,
+		 &period_or_end, &mui, &muo, &vf,
+		 &temp_profile, &tlow, &thigh, &twidth,
+		 &lowtwidth,
+		 &restart, &trestart,
+		 &outputdt,
+		 mode,
+		 mu,
+		 para
+		 );
 
   PetscInt nghostlayer = 3;
   G = create_levelset(maxr, maxz, dr, dz, nghostlayer);
   PetscObjectSetName((PetscObject)G.data, "levelset");
 
-  PetscInt reinitstep =2;
-  
+  PetscInt reinitstep = 2;
+  mk_dir(para);
+
   if(restart == 0) {
     initial_levelset(&G, r0, pertb, mode);
-    output(&G, 0);
-    reinitiate(&G, reinitstep);
+    output(&G, 0, para);
+    //reinitiate(&G, reinitstep);
     trestart = 0;
   }
   else {
-    load_levelset(&G,trestart);
-    G.t = trestart;
+    //load_levelset(&G,trestart);
+    //G.t = trestart;
   }
   
   
