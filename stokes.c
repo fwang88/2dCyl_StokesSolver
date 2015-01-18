@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <petscdmda.h>
 #include <math.h>
 #include "stokes.h"
@@ -29,6 +30,7 @@ levelset_vec create_levelset(PetscScalar maxR,
   X.dr = dr;
   X.dz = dz;
   X.da = da;
+  X.t = 0;
   DMCreateGlobalVector(X.da,&X.data);
   VecSet(X.data,0.0);
 
@@ -115,7 +117,9 @@ void initial_levelset(levelset_vec *G,
 void get_input(int argc, char **args, 	       
 	       PetscScalar *maxr, PetscScalar *maxz,
 	       PetscScalar *dr, PetscScalar *dz, 
-	       PetscScalar *r0, PetscScalar *pertb,
+	       PetscScalar *r0, 
+	       PetscScalar *tension, 
+	       PetscScalar *pertb,
 	       PetscInt *period_or_end,
 	       PetscScalar *mui, PetscScalar *muo,
 	       PetscScalar *vf,
@@ -123,40 +127,43 @@ void get_input(int argc, char **args,
 	       PetscScalar *tlow, PetscScalar *thigh, 
 	       PetscScalar *twidth, PetscScalar *lowtwidth,
 	       PetscScalar *restart, PetscScalar *trestart,
-	       PetscScalar *outputdt
+	       PetscScalar *outputdt,
+	       char *mode,
+	       PetscScalar *mu1, PetscScalar *mu2
 	       ) {
   
   int opt;
   
   struct option opts[] = {
-    { "maxR", 1, NULL, 1 },
-    { "maxZ", 1, NULL, 2 },
+    { "maxr", 1, NULL, 1 },
+    { "maxz", 1, NULL, 2 },
     { "dr",   1, NULL, 3 },
     { "dz",   1, NULL, 4 },
     { "r0",   1, NULL, 5 },
-    { "pertb",1, NULL, 6 },
-    { "period_or_end", 1, NULL, 7 },
-    { "mui",  1, NULL, 8 },
-    { "muo",  1, NULL, 9 },
-    { "vf",   1, NULL, 10 },
-    { "temp_profile",  1, NULL, 11 },
-    { "tlow", 1, NULL, 12 },
-    { "thigh",1, NULL, 13 },
-    { "twidth",        1, NULL, 14 },
-    { "lowtwidth",     1, NULL, 15 },
-    { "restart",       1, NULL, 16 },
-    { "trestart",      1, NULL, 17 },
-    { "outputdt",      1, NULL, 18 },
+    { "tension", 1, NULL, 6 },
+    { "pertb",1, NULL, 7 },
+    { "period_or_end", 1, NULL, 8 },
+    { "mui",  1, NULL, 9 },
+    { "muo",  1, NULL, 10 },
+    { "vf",   1, NULL, 11 },
+    { "temp_profile",  1, NULL, 12 },
+    { "tlow", 1, NULL, 13 },
+    { "thigh",1, NULL, 14 },
+    { "twidth",        1, NULL, 15 },
+    { "lowtwidth",     1, NULL, 16 },
+    { "restart",       1, NULL, 17 },
+    { "trestart",      1, NULL, 18 },
+    { "outputdt",      1, NULL, 19 },
     { NULL,   0, NULL, 0 }
   };
 
   while ((opt = getopt_long(argc, args, "h", opts, NULL)) != -1) {
     switch (opt) {
     case 1:
-      *maxR = atof(optarg);
+      *maxr = atof(optarg);
       break;
     case 2:
-      *maxZ = atof(optarg);
+      *maxz = atof(optarg);
       break;
     case 3:
       *dr   = atof(optarg);
@@ -164,7 +171,80 @@ void get_input(int argc, char **args,
     case 4:
       *dz   = atof(optarg);
       break;
+    case 5:
+      *r0   = atof(optarg);
+      break;
+    case 6:
+      *tension = atof(optarg);
+      break;
+    case 7:
+      *pertb = atof(optarg);
+      break;
+    case 8:
+      *period_or_end = atof(optarg);
+      break;
+    case 9:
+      *mui = atof(optarg);
+      break;
+    case 10:
+      *muo = atof(optarg);
+      break;
+    case 11:
+      *vf = atof(optarg);
+      break;
+    case 12:
+      *temp_profile = atof(optarg);
+      break;
+    case 13:
+      *tlow = atof(optarg);
+      break;
+    case 14:
+      *thigh = atof(optarg);
+      break;
+    case 15:
+      *twidth = atof(optarg);
+      break;
+    case 16:
+      *lowtwidth = atof(optarg);
+      break;
+    case 17:
+      *restart = atof(optarg);
+      break;
+    case 18:
+      *trestart = atof(optarg);
+      break;
+    case 19:
+      *outputdt = atof(optarg);
+      break;
     }
   }
+  if(*period_or_end) strcpy(mode, "periodic");
+  else strcpy(mode, "end");
+  
+  int i, nz;
+  PetscScalar t_z, z_width;
+  nz = round((*maxz) / (*dz));
+  z_width = (*twidth)/(*dz);
+  mu1 = malloc( nz * sizeof(PetscScalar) );
+  mu2 = malloc( nz * sizeof(PetscScalar) );
+  
+  for(i=0; i<nz; i++) {
+    if((*temp_profile) == 1) {
+      t_z = ((*thigh)-(*tlow)) * tanh( (nz + 1.0*(*lowtwidth)/(*dz) - i) / (z_width) ) + (*tlow);
+      mu2[i] = pow(10, 26909.0/(t_z+273)-7.2348)/1.0e3;
+      mu1[i] = pow(10, 819.0/(t_z+273)-3.727)/1.0e3;
+    }
+    else {
+      mu2[i] = *muo;
+      mu1[i] = *mui;
+    }
+  }
+  
+  if((*temp_profile) == 1) *tension = *tension * 1000;
 
+  printf("running simulation with \n\
+maxr = %g, maxz = %g, dr = %g, dz = %g, r0 = %g\n\
+tension = %g, pertb = %g\n", *maxr, *maxz, *dr, *dz, *r0, *tension, *pertb);
+  
+  return;
 }

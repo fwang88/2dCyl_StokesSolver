@@ -3,14 +3,15 @@ typedef struct {
   PetscScalar u, w, p;
 } StokesDOF;
 
-
 typedef struct {
   Vec data;
   PetscScalar maxR, maxZ, dr, dz;
   PetscInt nr, nz;
   DM da;
+  PetscScalar t;
 } levelset_vec;
 
+/****************************************************************************/
 
 levelset_vec create_levelset(PetscScalar maxR, PetscScalar maxZ,
 			    PetscScalar dr,   PetscScalar dz,
@@ -18,11 +19,20 @@ levelset_vec create_levelset(PetscScalar maxR, PetscScalar maxZ,
 
 void destroy_levelset(levelset_vec);
 
-void initial_levelset(levelset_vec *G, PetscScalar r0, PetscScalar pertb, char *mode);
+void initial_levelset(levelset_vec *G, PetscScalar r0, PetscScalar pertb, 
+		      char *mode);
 
-void get_input(int argc, char **args,
-	       PetscScalar *maxR, PetscScalar *maxZ,
-	       PetscScalar *dr,   PetscScalar *dz);
+void get_input(int argc, char **args,                                                         PetscScalar *maxr, PetscScalar *maxz,                                          PetscScalar *dr, PetscScalar *dz,                                              PetscScalar *r0,                            
+	       PetscScalar *tension,
+	       PetscScalar *pertb,
+               PetscInt *period_or_end,                                                       PetscScalar *mui, PetscScalar *muo,                                            PetscScalar *vf,                                                               PetscInt *temp_profile,                                                        PetscScalar *tlow, PetscScalar *thigh,                                         PetscScalar *twidth, PetscScalar *lowtwidth,                                   PetscScalar *restart, PetscScalar *trestart,                                   PetscScalar *outputdt,                                                         char *mode, 
+	       PetscScalar *mu1, PetscScalar *mu2
+	       );
+
+
+
+
+
 
 PETSC_EXTERN void InitialLevelSet(PetscScalar, PetscScalar, PetscInt, PetscInt, PetscScalar, PetscScalar, PetscScalar, PetscScalar **, PetscInt, PetscInt, PetscInt, PetscInt, char *);
 

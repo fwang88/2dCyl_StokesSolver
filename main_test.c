@@ -13,17 +13,13 @@
 
 int main(int argc, char **args) {
   levelset_vec G;
-
-
-  char mode[10] = "end";
-  PetscScalar pertb = 0.02, r0 = 0.97;
-  
-  //  PetscScalar *array;
   PetscViewer viewer;
 
   PetscInitialize(&argc, &args, PETSC_NULL, PETSC_NULL);
   
-  PetscScalar maxr, maxz, dr, dz, r0, pertb;
+  PetscScalar maxr, maxz, dr, dz, r0;
+  PetscScalar tension;
+  PetscScalar pertb;
   PetscInt period_or_end;
   PetscScalar mui, muo;
   PetscScalar vf;
@@ -31,24 +27,40 @@ int main(int argc, char **args) {
   PetscScalar tlow, thigh, twidth, lowtwidth;
   PetscScalar restart, trestart;
   PetscScalar outputdt;
+  char mode[10];
+  PetscScalar *mu1=NULL, *mu2=NULL;
 
   get_input(argc, args, 
-	    &maxr, &maxz, &dr, &dz, &r0, &pertb,
+	    &maxr, &maxz, &dr, &dz, &r0,
+	    &tension,
+	    &pertb,
 	    &period_or_end, &mui, &muo, &vf,
 	    &temp_profile, &tlow, &thigh, &twidth,
 	    &lowtwidth,
 	    &restart, &trestart,
-	    &outputdt
+	    &outputdt,
+	    mode,
+	    mu1, mu2
 	    );
 
   PetscInt nghostlayer = 3;
-  G = create_levelset(maxR, maxZ, dr, dz, nghostlayer);
+  G = create_levelset(maxr, maxz, dr, dz, nghostlayer);
   PetscObjectSetName((PetscObject)G.data, "levelset");
 
-  initial_levelset(&G, r0, pertb, mode);
+  PetscInt reinitstep =2;
   
-
-
+  if(restart == 0) {
+    initial_levelset(&G, r0, pertb, mode);
+    output(&G, 0);
+    reinitiate(&G, reinitstep);
+    trestart = 0;
+  }
+  else {
+    load_levelset(&G,trestart);
+    G.t = trestart;
+  }
+  
+  
 
 
 
