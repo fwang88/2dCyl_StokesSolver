@@ -32,7 +32,7 @@ int main(int argc, char **args) {
   if(para->restart == 0) {
     initial_levelset(&G, para);
     output(&G, 0, para);
-    //reinitiate(&G, para->reinitstep);
+    reinit(&G, para);
     para->trestart = 0;
     printf("%g\n",G.t);
   }
@@ -41,7 +41,7 @@ int main(int argc, char **args) {
     G.t = para->trestart;
   }
   
-  //  VecView(G.data, PETSC_VIEWER_DEFAULT);
+  VecView(G.data, PETSC_VIEWER_DEFAULT);
   
 
 

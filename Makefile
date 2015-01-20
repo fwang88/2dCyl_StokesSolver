@@ -4,7 +4,7 @@ include ${PETSC_DIR}/conf/variables
 include ${PETSC_DIR}/conf/rules
 
 #CLEANFILES = stokes
-OBJECTS = main_test.o stokes.o io.o
+OBJECTS = main_test.o stokes.o io.o reinit.o
 #CLINKER = mpicc
 
 stokes_test: $(OBJECTS)

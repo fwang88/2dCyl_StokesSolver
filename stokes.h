@@ -49,12 +49,18 @@ void output(levelset_vec *G, PetscScalar time, parameter *para);
 
 void load_levelset(levelset_vec *G, parameter *para);
 
+void reinit(levelset_vec *G, parameter *para);
+
+void reinit_kernal(Vec G1, Vec G,
+                   PetscScalar dtau, PetscScalar epsilon,
+                   PetscScalar dz, PetscScalar dr,
+                   PetscInt nz, PetscInt nr,
+                   DM da
+                   );
+
+  double upwind_WENO_reinit(double v1,double v2,double v3,double v4,double v5);
 
 
-
-
-
-PETSC_EXTERN void InitialLevelSet(PetscScalar, PetscScalar, PetscInt, PetscInt, PetscScalar, PetscScalar, PetscScalar, PetscScalar **, PetscInt, PetscInt, PetscInt, PetscInt, char *);
 
 PETSC_EXTERN void RK2DReinit(Vec, PetscInt, PetscScalar, PetscScalar, PetscInt, PetscInt, DM);
 
