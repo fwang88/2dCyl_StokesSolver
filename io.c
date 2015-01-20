@@ -29,3 +29,14 @@ void output(levelset_vec *G, PetscScalar time, parameter *para) {
   
   return;
 }
+
+void load_levelset(levelset_vec *G, parameter *para) {
+  char buffer[1000];
+  PetscViewer viewer;
+
+  sprintf(buffer, "./data/maxz_%.1f_maxr_%.1f_dz_%.2f_vf_%.2f_tlow_%.1f_thigh_%.1f_twidth_%.1f_lowtwidth_%.1f/outputG_t_%.6f", para->maxz, para->maxr, para->dz, para->vf, para->tlow, para->thigh, para->twidth, para->lowtwidth, para->trestart);
+  
+  PetscViewerBinaryOpen(PETSC_COMM_WORLD, buffer, FILE_MODE_READ, &viewer);
+  VecLoad(G->data, viewer);
+  PetscViewerDestroy(&viewer);
+}

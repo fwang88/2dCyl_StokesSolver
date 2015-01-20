@@ -16,56 +16,32 @@ int main(int argc, char **args) {
   PetscViewer viewer;
 
   PetscInitialize(&argc, &args, PETSC_NULL, PETSC_NULL);
-  
-  PetscScalar maxr, maxz, dr, dz, r0;
-  PetscScalar tension;
-  PetscScalar pertb;
-  PetscInt period_or_end;
-  PetscScalar mui, muo;
-  PetscScalar vf;
-  PetscInt temp_profile;
-  PetscScalar tlow, thigh, twidth, lowtwidth;
-  PetscScalar restart, trestart;
-  PetscScalar outputdt;
-  char mode[10];
-  
+
   viscosity *mu;
   parameter *para;
   mu = malloc(sizeof(viscosity));
   para = malloc(sizeof(parameter));
   
-  get_input(argc, args, 
-		 &maxr, &maxz, &dr, &dz, &r0,
-		 &tension,
-		 &pertb,
-		 &period_or_end, &mui, &muo, &vf,
-		 &temp_profile, &tlow, &thigh, &twidth,
-		 &lowtwidth,
-		 &restart, &trestart,
-		 &outputdt,
-		 mode,
-		 mu,
-		 para
-		 );
-
-  PetscInt nghostlayer = 3;
-  G = create_levelset(maxr, maxz, dr, dz, nghostlayer);
+  get_input(argc, args, mu, para);
+  
+  G = create_levelset(para);
   PetscObjectSetName((PetscObject)G.data, "levelset");
 
-  PetscInt reinitstep = 2;
   mk_dir(para);
 
-  if(restart == 0) {
-    initial_levelset(&G, r0, pertb, mode);
+  if(para->restart == 0) {
+    initial_levelset(&G, para);
     output(&G, 0, para);
-    //reinitiate(&G, reinitstep);
-    trestart = 0;
+    //reinitiate(&G, para->reinitstep);
+    para->trestart = 0;
+    printf("%g\n",G.t);
   }
   else {
-    //load_levelset(&G,trestart);
-    //G.t = trestart;
+    load_levelset(&G, para);
+    G.t = para->trestart;
   }
   
+  //  VecView(G.data, PETSC_VIEWER_DEFAULT);
   
 
 

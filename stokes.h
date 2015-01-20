@@ -5,7 +5,6 @@ typedef struct {
 
 typedef struct {
   Vec data;
-  PetscScalar maxR, maxZ, dr, dz;
   PetscInt nr, nz;
   DM da;
   PetscScalar t;
@@ -22,6 +21,11 @@ typedef struct {
   PetscScalar tlow, thigh, twidth, lowtwidth;
   PetscScalar restart, trestart;
   PetscScalar outputdt;
+  char mode[10];
+  PetscInt nghostlayer;
+  PetscScalar epsilon;
+  PetscInt reinitstep;
+  PetscInt nr, nz;
 } parameter;
 
 typedef struct {
@@ -31,38 +35,19 @@ typedef struct {
 
 /****************************************************************************/
 
-levelset_vec create_levelset(PetscScalar maxR, PetscScalar maxZ,
-			     PetscScalar dr,   PetscScalar dz,
-			     PetscInt nghostlayer);
+levelset_vec create_levelset(parameter *para);
 
 void destroy_levelset(levelset_vec);
 
-void initial_levelset(levelset_vec *G, PetscScalar r0, PetscScalar pertb, 
-		      char *mode);
+void initial_levelset(levelset_vec *G, parameter *para);
 
-void get_input(int argc, char **args,
-	       PetscScalar *maxr, PetscScalar *maxz,
-	       PetscScalar *dr, PetscScalar *dz,
-	       PetscScalar *r0,                            
-	       PetscScalar *tension,
-	       PetscScalar *pertb,
-               PetscInt *period_or_end,
-	       PetscScalar *mui, PetscScalar *muo,
-	       PetscScalar *vf,
-	       PetscInt *temp_profile,
-	       PetscScalar *tlow, PetscScalar *thigh,
-	       PetscScalar *twidth, PetscScalar *lowtwidth,
-	       PetscScalar *restart, PetscScalar *trestart,
-	       PetscScalar *outputdt,
-	       char *mode,
-	       viscosity *mu,
-	       parameter *para);
+void get_input(int argc, char **args, viscosity *mu, parameter *para);
 
 void mk_dir(parameter *para);
 
 void output(levelset_vec *G, PetscScalar time, parameter *para);
 
-
+void load_levelset(levelset_vec *G, parameter *para);
 
 
 
