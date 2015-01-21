@@ -41,6 +41,34 @@ void destroy_levelset(levelset_vec X) {
   free(X.data);
 }
 
+stokes_matrix create_stokes_matrix(parameter *para) {
+  stokes_matrix B;
+  PetscInt nr, nz;
+  DM da;
+
+  DMDACreate2d(PETSC_COMM_WORLD, 
+	       DMDA_BOUNDARY_NONE, DMDA_BOUNDARY_NONE,
+	       DMDA_STENCIL_BOX,
+	       para->nr, para->nz,
+	       1, PETSC_DECIDE, 1,
+	       1, NULL, NULL, &da);
+
+  DMSetMatrixPreallocateOnly(da, PETSC_TRUE);
+  DMSetUp(da);
+  DMCreateMatrix(da, MATAIJ, &B.data);
+
+  MatZeroEntries(B.data);
+  MatAssemblyBegin(B.data, MAT_FINAL_ASSEMBLY);
+  MatAssemblyEnd(B.data, MAT_FINAL_ASSEMBLY);
+
+  B.nz = para->nz;
+  B.nr = para->nr;
+  B.da = da;
+
+  return B;
+
+}
+
 /*******************************************************/
 
 void initial_levelset(levelset_vec *G, parameter *para) {

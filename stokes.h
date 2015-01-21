@@ -11,6 +11,13 @@ typedef struct {
 } levelset_vec;
 
 typedef struct {
+  Mat data;
+  PetscInt nr, nz;
+  DM da;
+} stokes_matrix;
+
+
+typedef struct {
   PetscScalar maxr, maxz, dr, dz, r0;
   PetscScalar tension;
   PetscScalar pertb;
@@ -38,6 +45,8 @@ typedef struct {
 levelset_vec create_levelset(parameter *para);
 
 void destroy_levelset(levelset_vec);
+
+stokes_matrix create_stokes_matrix(parameter *para);
 
 void initial_levelset(levelset_vec *G, parameter *para);
 

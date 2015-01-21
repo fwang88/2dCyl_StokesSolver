@@ -12,8 +12,8 @@
 #include <sys/stat.h>
 
 int main(int argc, char **args) {
+
   levelset_vec G;
-  PetscViewer viewer;
 
   PetscInitialize(&argc, &args, PETSC_NULL, PETSC_NULL);
 
@@ -40,10 +40,15 @@ int main(int argc, char **args) {
     load_levelset(&G, para);
     G.t = para->trestart;
   }
-  
-  VecView(G.data, PETSC_VIEWER_DEFAULT);
-  
 
+  PetscViewer viewer;
+  //VecView(G.data, PETSC_VIEWER_DEFAULT);
+  
+  stokes_matrix B;
+  B = create_stokes_matrix(para);
+  printf("%d, %d\n", B.nr, B.nz);
+  MatView(B.data, PETSC_VIEWER_DEFAULT);
+  /** time evolution of stokes equation **/
 
 
 

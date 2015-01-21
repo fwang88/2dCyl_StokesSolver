@@ -184,7 +184,7 @@ void AssembleB(Mat B, DM da, DM da3, PetscScalar epsilon, PetscInt nr, PetscInt 
       
       getElementEqnums(eqnu,eqnw,eqnp,i,j,nr,nz);      
       eqnval(da,valu,valw,valp,i,j,mu1,mu2,lG,dr,dz,nr,nz,epsilon);
-
+      
       MatSetValuesStencil(B,1,&ueqn,11,eqnu,valu,ADD_VALUES);
       MatSetValuesStencil(B,1,&weqn,11,eqnw,valw,ADD_VALUES);
       if(i==(nr-1) && j==(nz-1)) {
