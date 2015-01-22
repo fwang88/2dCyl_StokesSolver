@@ -199,9 +199,6 @@ int main(int argc, char **args) {
   PetscInt dof=3;
   PetscScalar **uarray, **warray;
 
-  VecDuplicate(G,&U);
-  VecDuplicate(G,&W);
-
   nghostlayer = 1;
   DMDACreate2d(PETSC_COMM_WORLD, DMDA_BOUNDARY_NONE, DMDA_BOUNDARY_NONE, DMDA_STENCIL_BOX, nr, nz, 1, PETSC_DECIDE, dof, nghostlayer,NULL,NULL,&da3);
   DMCreateGlobalVector(da3,&Force);

@@ -1,5 +1,5 @@
 LISTTW="910"
-LISTVEL="0."
+LISTVEL="0.5"
 LISTThigh="2200"
 LISTTlow="1400"
 dr=0.1
@@ -8,8 +8,8 @@ maxz=400
 maxr=10
 pertb=0.0
 lowtwidth=100
-trestart=0
-restart=0
+trestart=500
+restart=1
 initflag=0
 temp_profile=1
 tension=1.5

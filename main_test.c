@@ -34,7 +34,7 @@ int main(int argc, char **args) {
     output(&G, 0, para);
     reinit(&G, para);
     para->trestart = 0;
-    printf("%g\n",G.t);
+    // printf("%g\n",G.t);
   }
   else {
     load_levelset(&G, para);
@@ -46,17 +46,43 @@ int main(int argc, char **args) {
   
   stokes_matrix B;
   B = create_stokes_matrix(para);
-  printf("%d, %d\n", B.nr, B.nz);
-  MatView(B.data, PETSC_VIEWER_DEFAULT);
+  assembly_stokes_matrix(&B);
+  
+  stokes_force force, uwp;
+  force = create_stokes_force(para, B.da);  
+  uwp = create_stokes_force(para, B.da);
+
+  KSP ksp;
+  KSPCreate(PETSC_COMM_WORLD, &ksp);
+
+  //VecView(force.data, PETSC_VIEWER_DEFAULT);
+
   /** time evolution of stokes equation **/
+  
+  //  MatView(B.data, PETSC_VIEWER_DEFAULT);
+  //  get_force_from_G(&force, &G, para);
+
+  while (0) {
+    
+    get_B_from_G(&B, &G, para, mu);  
+    
+    get_force_from_G(&force, &G, para);
+    /*
+    if(itstep >= 11) {
+      stokes_solver_direct(&ksp, &B, &force, &uwp);
+    }
+    else {
+      stokes_solver_precond(&ksp, &B, &force, &uwp);
+    }
+    
+    */
+    break;
+  }
 
 
 
 
-
-
-
-
+  
 
 
 
