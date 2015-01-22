@@ -31,17 +31,15 @@ int main(int argc, char **args) {
 
   if(para->restart == 0) {
     initial_levelset(&G, para);
-    output(&G, 0, para);
+    output_levelset(&G, para);
     reinit(&G, para);
     para->trestart = 0;
-    // printf("%g\n",G.t);
   }
   else {
     load_levelset(&G, para);
     G.t = para->trestart;
   }
 
-  PetscViewer viewer;
   //VecView(G.data, PETSC_VIEWER_DEFAULT);
   
   stokes_matrix B;
@@ -52,31 +50,40 @@ int main(int argc, char **args) {
   force = create_stokes_force(para, B.da);  
   uwp = create_stokes_force(para, B.da);
 
-  KSP ksp;
-  KSPCreate(PETSC_COMM_WORLD, &ksp);
+  MYKSP solver;
+  initialize_MYKSP(&solver);
+  //  KSPCreate(PETSC_COMM_WORLD, &solver.ksp);
 
   //VecView(force.data, PETSC_VIEWER_DEFAULT);
 
   /** time evolution of stokes equation **/
+  /*
+  get_B_from_G(&B, &G, para, mu);  
   
-  //  MatView(B.data, PETSC_VIEWER_DEFAULT);
-  //  get_force_from_G(&force, &G, para);
+  get_force_from_G(&force, &G, para);
+  
+  stokes_solver_direct(&ksp, &B, &force, &uwp);
+  */
+  //  output_uwp(&uwp, para);
+  //  VecView(uwp.data, PETSC_VIEWER_DEFAULT);
 
-  while (0) {
+
+  while (1) {
     
     get_B_from_G(&B, &G, para, mu);  
     
     get_force_from_G(&force, &G, para);
-    /*
-    if(itstep >= 11) {
-      stokes_solver_direct(&ksp, &B, &force, &uwp);
+    
+    if(solver.niter >= 11) {
+      stokes_solver_direct(&solver, &B, &force, &uwp);
     }
     else {
-      stokes_solver_precond(&ksp, &B, &force, &uwp);
+      stokes_solver_precond(&solver, &B, &force, &uwp);
     }
     
-    */
-    break;
+    lab_frame_shift_w(&uwp, para->vf);
+
+
   }
 
 

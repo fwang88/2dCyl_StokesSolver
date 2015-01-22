@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <petscksp.h>
 #include <petscdmda.h>
 #include <math.h>
 #include "stokes.h"

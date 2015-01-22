@@ -1,3 +1,5 @@
+#ifndef HEADER_STOKES
+#define HEADER_STOKES
 
 typedef struct {
   Vec data;
@@ -10,15 +12,8 @@ typedef struct {
   Vec data;
   PetscInt nr, nz;
   DM da;
-} stokes_force;
-
-typedef struct {
-  Vec data;
-  PetscInt nr, nz;
-  DM da;
   PetscScalar t;
-  PetscScalar u, w, p;
-} stokes_uwp;
+} stokes_force;
 
 typedef struct {
   Mat data;
@@ -54,6 +49,11 @@ typedef struct {
   PetscScalar u, w, p;
 } StokesDOF;
 
+typedef struct {
+  KSP ksp;
+  PetscInt niter;
+} MYKSP;
+
 /****************************************************************************/
 
 levelset_vec create_levelset(parameter *para);
@@ -71,9 +71,11 @@ void get_input(int argc, char **args, viscosity *mu, parameter *para);
 
 void mk_dir(parameter *para);
 
-void output(levelset_vec *G, PetscScalar time, parameter *para);
+void output_levelset(levelset_vec *G, parameter *para);
 
 void load_levelset(levelset_vec *G, parameter *para);
+
+void output_uwp(stokes_force *uwp, parameter *para);
 
 void reinit(levelset_vec *G, parameter *para);
 
@@ -93,6 +95,19 @@ void get_B_from_G(stokes_matrix *B, levelset_vec *G, parameter *para, viscosity 
 
 void get_force_from_G(stokes_force *force, levelset_vec *G, parameter *para);
 
+void initialize_MYKSP(MYKSP *solver);
+
+void stokes_solver_direct(MYKSP *solver, 
+			  stokes_matrix *B, stokes_force *force, 
+			  stokes_force *uwp);
+
+void stokes_solver_precond(MYKSP *solver,
+			   stokes_matrix *B, stokes_force *force,
+			   stokes_force *uwp);
+
+void lab_frame_shift_w(stokes_force *uwp, PetscScalar vf);
+
+
 PETSC_EXTERN void RK2DReinit(Vec, PetscInt, PetscScalar, PetscScalar, PetscInt, PetscInt, DM);
 
 PETSC_EXTERN void Euler_Reinit_2D(Vec, Vec, PetscScalar, PetscScalar, PetscScalar, PetscScalar, PetscInt, PetscInt, DM);
@@ -106,3 +121,7 @@ PETSC_EXTERN void AssembleB( Mat, DM, DM , PetscScalar , PetscInt , PetscInt , P
 void AssembleForce(Vec , Vec , DM , DM , PetscInt , PetscInt , PetscScalar , PetscScalar , PetscScalar, PetscScalar );
 
 double timestep(DM, Vec, PetscScalar, PetscScalar, PetscScalar);
+
+
+
+#endif
