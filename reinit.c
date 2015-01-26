@@ -102,10 +102,10 @@ void reinit_kernal(Vec G1, Vec G,
 		 &lsizer, &lsizez, 0);
   
   static double v1, v2, v3, v4, v5, vtmp;
-  double der_z_minus, der_z_plus, 
-    der_r_minus, der_r_plus,
-    G_z_squared, G_r_squared,
-    smoothing_factor;
+  static double der_z_minus, der_z_plus;
+  static double der_r_minus, der_r_plus;
+  static double G_z_squared, G_r_squared;
+  static double smoothing_factor;
   
   for (i=llz; i<llz+lsizez; i++)
     for (j=llr; j<llr+lsizer; j++) {

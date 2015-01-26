@@ -56,22 +56,20 @@ stokes_matrix create_stokes_matrix(parameter *para) {
 	       1, PETSC_DECIDE, dof,
 	       1, NULL, NULL, &da);
   
-  DMSetMatrixPreallocateOnly(da, PETSC_TRUE);
-  DMSetUp(da);
-
   B.nz = para->nz;
   B.nr = para->nr;
   B.da = da;
-  
+
   return B;
 }
 
 void assembly_stokes_matrix(stokes_matrix *B) {
 
+  DMSetMatrixPreallocateOnly(B->da, PETSC_TRUE);
+  DMSetUp(B->da);
   DMCreateMatrix(B->da, MATAIJ, &B->data);
   
-  MatAssemblyBegin(B->data, MAT_FINAL_ASSEMBLY);
-  MatAssemblyEnd(B->data, MAT_FINAL_ASSEMBLY);
+  //MatZeroEntries(B->data);
 
 }
 
@@ -128,7 +126,7 @@ void initial_levelset(levelset_vec *G, parameter *para) {
   else if( strcmp(para->mode,"end") == 0 ) {
     j0 = G->nz - 50;
     srandom(rank);
-    printf("j0 = %d\n",j0);
+    //    printf("j0 = %d\n",j0);
     for( j=llz; j<llz+lsizez; j++ ) {
       if(j<j0) {
 	for( i=llr; i<llr+lsizer; i++) {
@@ -291,7 +289,7 @@ void get_input(int argc, char **args, viscosity *mu, parameter *para) {
   
   if(para->temp_profile == 1) para->tension = para->tension * 1000;
   
-  printf("running simulation with maxr = %g, maxz = %g, nr = %d, nz = %d, r0 = %g, tension = %g, pertb = %g, mode = %s, mu1 = %g, mu2 = %g\n", para->maxr, para->maxz, para->nr, para->nz, para->r0, para->tension, para->pertb, para->mode, mu->mu1[0], mu->mu2[0]);
+  printf("running simulation with maxr = %g, maxz = %g, nr = %d, nz = %d, r0 = %g, tension = %g, pertb = %g, mode = %s, mu1 = %g, mu2 = %g, outputdt = %g\n", para->maxr, para->maxz, para->nr, para->nz, para->r0, para->tension, para->pertb, para->mode, mu->mu1[0], mu->mu2[0], para->outputdt);
   
   return;
 }

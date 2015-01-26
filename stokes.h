@@ -107,6 +107,28 @@ void stokes_solver_precond(MYKSP *solver,
 
 void lab_frame_shift_w(stokes_force *uwp, PetscScalar vf);
 
+PetscScalar advection_timestep(stokes_force *uwp, 
+			       parameter *para);
+
+void advection_evolve(levelset_vec *G, stokes_force *uwp,
+		      parameter *para, PetscScalar dt);
+
+void advection_evolve_kernal(DM da, DM da3,
+                             Vec G1, Vec G,
+                             Vec uwp,
+                             PetscScalar dz, PetscScalar dr,
+                             PetscInt nz, PetscInt nr,
+                             PetscScalar dt);
+
+
+void stokes_solve(stokes_force *uwp,
+                  MYKSP *solver,
+                  stokes_matrix *B,
+                  stokes_force *force,
+                  levelset_vec *G,
+                  parameter *para,
+                  viscosity *mu);
+
 
 PETSC_EXTERN void RK2DReinit(Vec, PetscInt, PetscScalar, PetscScalar, PetscInt, PetscInt, DM);
 
