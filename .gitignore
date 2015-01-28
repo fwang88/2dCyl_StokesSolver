@@ -1,0 +1,7 @@
+*.o
+*.info
+/data
+/test
+/master*
+
+stokes_test

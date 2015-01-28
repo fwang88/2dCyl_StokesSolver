@@ -77,6 +77,8 @@ void load_levelset(levelset_vec *G, parameter *para);
 
 void output_uwp(stokes_force *uwp, parameter *para);
 
+void output_force(stokes_force *force, parameter *para);
+
 void reinit(levelset_vec *G, parameter *para);
 
 void reinit_kernal(Vec G1, Vec G,
@@ -86,7 +88,7 @@ void reinit_kernal(Vec G1, Vec G,
                    DM da
                    );
 
-  double upwind_WENO_reinit(double v1,double v2,double v3,double v4,double v5);
+double upwind_WENO_reinit(double v1,double v2,double v3,double v4,double v5);
 
 
 stokes_force create_stokes_force(parameter *para, DM da);
